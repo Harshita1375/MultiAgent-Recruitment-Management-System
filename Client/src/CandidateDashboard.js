@@ -39,7 +39,7 @@ const CandidateDashboard = ({ user, setUser }) => {
     <div className="dashboard-container">
       {/* Navigation Bar */}
       <nav className="dashboard-nav">
-        <div className="nav-logo">Freelancer</div>
+        <div className="nav-logo">TalentSync</div>
         <div className="nav-links">
           <span onClick={() => navigate('/profile')}>Profile</span>
           <span>Support</span>

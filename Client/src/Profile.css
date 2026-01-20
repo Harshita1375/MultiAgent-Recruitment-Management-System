@@ -1,0 +1,236 @@
+/* --- Global Page Layout --- */
+.profile-page, .profile-container {
+  background-color: #f3f2ef; /* LinkedIn light gray background */
+  min-height: 100vh;
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --- Profile Cards --- */
+.profile-card {
+  background: white;
+  width: 100%;
+  max-width: 800px;
+  border-radius: 10px;
+  border: 1px solid #dcdcdc;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+/* --- Header & Banner --- */
+.cover-photo, .cover-photo-bg {
+  height: 160px;
+  background: #adb5bd; /* Default gray banner */
+}
+
+.header-body, .header-details {
+  padding: 0 2rem 1.5rem;
+  margin-top: -60px; /* Pulls profile picture up over banner */
+}
+
+.avatar-circle, .avatar-wrapper {
+  width: 120px;
+  height: 120px;
+  background: white;
+  border-radius: 50%;
+  border: 4px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+
+.headline, .headline-sub {
+  font-size: 1.1rem;
+  color: #111;
+  margin-top: 4px;
+}
+
+/* --- Section Lists (Experience, Education, Certifications) --- */
+.section-padding {
+  padding: 1.5rem 2rem;
+}
+
+.section-title-row, .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.list-row, .list-entry {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+.entity-icon, .edu-icon {
+  width: 48px;
+  height: 48px;
+  background: #f3f2ef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border-radius: 4px;
+}
+
+.list-content h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000;
+}
+
+.list-content p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #111;
+}
+
+.sub-text, .date-range {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* --- Buttons --- */
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: #f3f2ef;
+}
+
+.save-btn {
+  background: #0a66c2; /* LinkedIn Blue */
+  color: white;
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #004182;
+}
+
+.cancel-btn {
+  background: white;
+  color: #666;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- Modals & Overlays --- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content, .modal-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.modal-content input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box; /* Ensures padding doesn't break width */
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* --- First-Time Setup View --- */
+.setup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.setup-box {
+  text-align: center;
+  padding: 3rem;
+  max-width: 500px;
+}
+
+.setup-box h2 {
+  margin-bottom: 1rem;
+}
+
+.setup-box p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+/* ... Keep existing Container/Card styles ... */
+
+.section-padding { padding: 1.5rem 2rem; }
+.section-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+
+.list-row { display: flex; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid #f0f0f0; }
+.list-row:last-child { border-bottom: none; }
+
+.entity-icon {
+  width: 48px; height: 48px; background: #f3f2ef;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; border-radius: 4px; flex-shrink: 0;
+}
+
+.list-content h4 { margin: 0; font-size: 1rem; font-weight: 600; color: #000; }
+.list-content p { margin: 2px 0; font-size: 0.9rem; color: #111; }
+.sub-text { font-size: 0.85rem; color: #666; }
+
+.cert-link {
+  display: inline-block; margin-top: 8px; padding: 6px 16px;
+  border: 1px solid #666; border-radius: 20px;
+  font-size: 0.9rem; font-weight: 600; color: #666; text-decoration: none;
+}
+.cert-link:hover { background: #f3f2ef; border-color: #000; color: #000; }

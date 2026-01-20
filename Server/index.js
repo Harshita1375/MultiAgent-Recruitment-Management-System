@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
+// 1. Import your profile routes here
+const profileRoutes = require('./routes/profileRoutes'); 
 
 const app = express();
 app.use(cors({
@@ -18,6 +20,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Use the Routes
 app.use('/api/auth', authRoutes);
+// 2. Mount the profile routes so /api/profile/education becomes valid
+app.use('/api/profile', profileRoutes); 
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
