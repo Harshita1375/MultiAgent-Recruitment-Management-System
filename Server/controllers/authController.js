@@ -11,7 +11,7 @@ const generateToken = (id) => {
 
 // --- Google Auth ---
 exports.googleAuth = async (req, res) => {
-    const { token, role } = req.body; 
+    const { token } = req.body;
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
@@ -19,19 +19,37 @@ exports.googleAuth = async (req, res) => {
         });
         const { sub, email, name, picture } = ticket.getPayload();
 
-        // Use findOneAndUpdate to save profile to the 'users' collection
-        let user = await User.findOneAndUpdate(
-            { email },
-            { googleId: sub, name, picture, role }, 
-            { new: true, upsert: true }
-        );
+        // Check if user already exists in JobPortal database
+        let user = await User.findOne({ email });
 
-        res.status(200).json({ user, sessionToken: generateToken(user._id) });
+        if (!user) {
+            // Do NOT save yet. Send data back to frontend to ask for role.
+            return res.status(200).json({ 
+                isNewUser: true, 
+                googleData: { googleId: sub, email, name, picture } 
+            });
+        }
+
+        // Existing user: Generate token and log in
+        const sessionToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.status(200).json({ isNewUser: false, user, sessionToken });
     } catch (error) {
         res.status(401).json({ message: "Google Auth Failed" });
     }
 };
 
+// Ensure 'exports.' is at the start of the function
+exports.finalizeRole = async (req, res) => {
+    const { googleData, role } = req.body;
+    try {
+        const user = await User.create({ ...googleData, role });
+        const sessionToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.status(201).json({ user, sessionToken });
+    } catch (error) {
+        console.error("Finalize Error:", error);
+        res.status(500).json({ message: "Error saving role selection" });
+    }
+};
 // --- Manual Register ---
 exports.register = async (req, res) => {
     const { name, email, password, role } = req.body;

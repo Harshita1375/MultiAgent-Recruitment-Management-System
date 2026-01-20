@@ -19,16 +19,23 @@ const Login = ({ setUser }) => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await axios.post('http://localhost:5000/api/auth/google', {
-        token: credentialResponse.credential,
-        role: isSignup ? role : undefined // Only send role if signing up
-      });
-      handlePostAuth(res.data.user, res.data.sessionToken);
-    } catch (err) {
-      console.error("Google Auth Failed", err);
+  try {
+    const res = await axios.post('http://localhost:5000/api/auth/google', {
+      token: credentialResponse.credential
+    });
+
+    if (res.data.isNewUser) {
+      // Send them to the role selection page with their Google data
+      navigate('/select-role', { state: { googleData: res.data.googleData } });
+    } else {
+      localStorage.setItem('token', res.data.sessionToken);
+      setUser(res.data.user);
+      navigate(`/${res.data.user.role}-dashboard`);
     }
-  };
+  } catch (err) {
+    console.error("Google Auth Failed", err);
+  }
+};
 
   const handleManualAuth = async (e) => {
     e.preventDefault();
