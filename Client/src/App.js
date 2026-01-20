@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './Login';
 import Profile from './Profile'; 
 import SelectRole from './SelectRole';
+import CandidateDashboard from './CandidateDashboard';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -17,9 +18,12 @@ function App() {
         <Route path="/select-role" element={<SelectRole setUser={setUser} />} />
 
         {/* Dashboard Routes based on User Role */}
-        <Route path="/candidate-dashboard" element={user ? <Profile user={user} /> : <Navigate to="/" />} />
         <Route path="/company-dashboard" element={user ? <Profile user={user} /> : <Navigate to="/" />} />
         <Route path="/admin-dashboard" element={user ? <Profile user={user} /> : <Navigate to="/" />} />
+        <Route 
+          path="/candidate-dashboard" 
+          element={user ? <CandidateDashboard user={user} setUser={setUser} /> : <Navigate to="/" />} 
+        />
 
         {/* General Profile Route */}
         <Route path="/profile" element={<Profile user={user} />} />
