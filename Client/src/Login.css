@@ -42,3 +42,56 @@
   display: flex;
   justify-content: center;
 }
+/* Add to your existing Login.css */
+.role-tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.role-tabs button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.role-tabs button.active {
+  background: white;
+  color: #2563eb;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  margin-top: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.divider {
+  margin: 20px 0;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+  line-height: 0.1em;
+}
+
+.divider span {
+  background: #fff;
+  padding: 0 10px;
+  color: #94a3b8;
+  font-size: 12px;
+}
