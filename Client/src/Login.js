@@ -6,20 +6,25 @@ import './Login.css';
 
 const Login = ({ setUser }) => {
   const [isSignup, setIsSignup] = useState(false);
-  const [role, setRole] = useState('candidate'); // Default role
+  const [role, setRole] = useState('candidate');
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const navigate = useNavigate();
+
+  // Unified function to handle navigation based on user role
+  const handlePostAuth = (user, token) => {
+    localStorage.setItem('token', token);
+    setUser(user);
+    // Redirects to the specific dashboard based on the role stored in DB
+    navigate(`/${user.role}-dashboard`);
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/google', {
         token: credentialResponse.credential,
-        role: role // Send the selected role to the backend
+        role: isSignup ? role : undefined // Only send role if signing up
       });
-
-      localStorage.setItem('token', res.data.sessionToken);
-      setUser(res.data.user);
-      navigate('/profile');
+      handlePostAuth(res.data.user, res.data.sessionToken);
     } catch (err) {
       console.error("Google Auth Failed", err);
     }
@@ -31,52 +36,56 @@ const Login = ({ setUser }) => {
     try {
       const res = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, {
         ...formData,
-        role
+        role: isSignup ? role : undefined
       });
-      localStorage.setItem('token', res.data.sessionToken);
-      setUser(res.data.user);
-      navigate('/profile');
+      handlePostAuth(res.data.user, res.data.sessionToken);
     } catch (err) {
-      alert("Authentication Failed");
+      alert(err.response?.data?.message || "Authentication Failed");
     }
   };
 
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>{isSignup ? "Create Account" : "Welcome Back"}</h2>
-        
-        {/* Role Selection Tabs */}
-        <div className="role-tabs">
-          {['candidate', 'company', 'admin'].map((r) => (
-            <button 
-              key={r}
-              className={role === r ? 'active' : ''} 
-              onClick={() => setRole(r)}
-            >
-              {r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
-          ))}
-        </div>
+        <h2 className="auth-title">{isSignup ? "Create Account" : "Welcome Back"}</h2>
 
-        <form onSubmit={handleManualAuth}>
+        {/* Role tabs only appear when creating a new account */}
+        {isSignup && (
+          <div className="role-tabs">
+            {['candidate', 'company', 'admin'].map((r) => (
+              <button 
+                key={r}
+                type="button"
+                className={role === r ? 'active' : ''} 
+                onClick={() => setRole(r)}
+              >
+                {r.charAt(0).toUpperCase() + r.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleManualAuth} className="auth-form">
           {isSignup && (
             <input 
               type="text" 
               placeholder="Full Name" 
+              className="auth-input"
               onChange={(e) => setFormData({...formData, name: e.target.value})} 
               required 
             />
           )}
           <input 
             type="email" 
-            placeholder="Email" 
+            placeholder="Email Address" 
+            className="auth-input"
             onChange={(e) => setFormData({...formData, email: e.target.value})} 
             required 
           />
           <input 
             type="password" 
             placeholder="Password" 
+            className="auth-input"
             onChange={(e) => setFormData({...formData, password: e.target.value})} 
             required 
           />
@@ -87,10 +96,19 @@ const Login = ({ setUser }) => {
 
         <div className="divider"><span>OR</span></div>
 
-        <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => console.log('Error')} />
+        <div className="google-wrapper">
+          <GoogleLogin 
+            onSuccess={handleGoogleSuccess} 
+            onError={() => console.log('Login Failed')}
+            text={isSignup ? "signup_with" : "signin_with"}
+          />
+        </div>
 
-        <p className="toggle-link" onClick={() => setIsSignup(!isSignup)}>
-          {isSignup ? "Already have an account? Login" : "New user? Create an account"}
+        <p className="toggle-link">
+          {isSignup ? "Already have an account? " : "New user? "}
+          <span onClick={() => setIsSignup(!isSignup)}>
+            {isSignup ? "Login" : "Create an account"}
+          </span>
         </p>
       </div>
     </div>

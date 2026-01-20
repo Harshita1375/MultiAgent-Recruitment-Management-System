@@ -53,6 +53,7 @@ exports.register = async (req, res) => {
         res.status(201).json({ user, sessionToken: generateToken(user._id) });
     } catch (error) {
         res.status(500).json({ message: "Server Error during registration" });
+        console.error(error);
     }
 };
 
