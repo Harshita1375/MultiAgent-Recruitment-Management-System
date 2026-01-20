@@ -5,10 +5,13 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000", "https://your-frontend.vercel.app"],
+    credentials: true
+}));
+
 app.use(express.json());
 
-// Connect to MongoDB Atlas using your JobPortal URI
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ Database Connected"))
     .catch(err => console.log(err));
