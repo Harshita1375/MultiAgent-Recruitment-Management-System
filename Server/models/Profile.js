@@ -6,16 +6,22 @@ const ProfileSchema = new mongoose.Schema({
   location: { type: String },
   skills: [{ type: String }],
   experience: [{
-    company: String,
-    role: String,
-    from: Date,
-    to: Date,
-    description: String
+    company: { type: String },
+    role: { type: String },
+    from: { type: Date }, // Expects Date object
+    to: { type: Date },   // Expects Date object
+    description: { type: String }
   }],
   education: [{
-    school: String,
-    degree: String,
-    year: String
+    school: { type: String },
+    degree: { type: String },
+    year: { type: String }
+  }],
+  certifications: [{ // Nested certification array
+    name: { type: String, required: true },
+    issuingOrganization: { type: String, required: true },
+    issueDate: { type: Date },
+    credentialUrl: { type: String }
   }],
   social: {
     linkedin: String,

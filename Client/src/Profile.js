@@ -6,13 +6,13 @@ const Profile = ({ user }) => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     
-    // Toggle states for different modals
+    // Manage which modal is open
     const [modalConfig, setModalConfig] = useState({ type: null, isOpen: false });
 
-    // Individual form states
+    // States for various form types matched to your Schema
     const [eduData, setEduData] = useState({ school: '', degree: '', year: '' });
     const [expData, setExpData] = useState({ company: '', role: '', from: '', to: '', description: '' });
-    const [certData, setCertData] = useState({ name: '', issuingOrganization: '', credentialUrl: '' });
+    const [certData, setCertData] = useState({ name: '', issuingOrganization: '', issueDate: '', credentialUrl: '' });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -20,11 +20,11 @@ const Profile = ({ user }) => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`${API_URL}/api/profile/me`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` } // Fixed Bearer format
             });
             setProfile(res.data);
         } catch (err) {
-            setProfile(null);
+            setProfile(null); // Triggers setup view for new users
         } finally {
             setLoading(false);
         }
@@ -43,30 +43,33 @@ const Profile = ({ user }) => {
             setModalConfig({ type: null, isOpen: false });
             fetchProfile(); 
         } catch (err) {
-            alert(`Error saving ${endpoint}`);
+            console.error("Save Error:", err.response?.data);
+            alert(`Error saving ${endpoint}. Check console for details.`);
         }
     };
 
     if (loading) return <div className="loader">Loading...</div>;
 
+    // View for a user with NO profile data yet
     if (!profile) {
         return (
             <div className="setup-container">
                 <div className="profile-card setup-box">
                     <h2>Welcome, {user?.name}!</h2>
-                    <p>Build your professional presence by adding your experience and certifications.</p>
+                    <p>Start your professional profile by adding your education details.</p>
                     <button className="save-btn" onClick={() => setModalConfig({ type: 'edu', isOpen: true })}>
-                        Get Started
+                        Add Education
                     </button>
                 </div>
+                {modalConfig.isOpen && renderModal()}
             </div>
         );
     }
 
+    // View for an existing profile
     return (
         <div className="profile-page">
-            {/* Header Section */}
-            <header className="profile-card">
+            <header className="profile-card profile-header">
                 <div className="cover-photo"></div>
                 <div className="header-body">
                     <div className="avatar-circle">👤</div>
@@ -75,7 +78,7 @@ const Profile = ({ user }) => {
                 </div>
             </header>
 
-            {/* EXPERIENCE SECTION */}
+            {/* Experience Section */}
             <section className="profile-card section-padding">
                 <div className="section-title-row">
                     <h3>Experience</h3>
@@ -87,13 +90,16 @@ const Profile = ({ user }) => {
                         <div className="list-content">
                             <h4>{exp.role}</h4>
                             <p>{exp.company}</p>
-                            <span className="sub-text">{exp.from} - {exp.to || 'Present'}</span>
+                            <span className="sub-text">
+                                {new Date(exp.from).toLocaleDateString()} - {exp.to ? new Date(exp.to).toLocaleDateString() : 'Present'}
+                            </span>
+                            <p className="description-text">{exp.description}</p>
                         </div>
                     </div>
                 ))}
             </section>
 
-            {/* EDUCATION SECTION */}
+            {/* Education Section */}
             <section className="profile-card section-padding">
                 <div className="section-title-row">
                     <h3>Education</h3>
@@ -110,7 +116,7 @@ const Profile = ({ user }) => {
                 ))}
             </section>
 
-            {/* CERTIFICATIONS SECTION */}
+            {/* Licenses & Certifications Section */}
             <section className="profile-card section-padding">
                 <div className="section-title-row">
                     <h3>Licenses & certifications</h3>
@@ -123,14 +129,15 @@ const Profile = ({ user }) => {
                             <h4>{cert.name}</h4>
                             <p>{cert.issuingOrganization}</p>
                             {cert.credentialUrl && (
-                                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="cert-link">Show credential</a>
+                                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="cert-link">
+                                    Show credential
+                                </a>
                             )}
                         </div>
                     </div>
                 ))}
             </section>
 
-            {/* MODAL RENDERER */}
             {modalConfig.isOpen && renderModal()}
         </div>
     );
@@ -145,14 +152,20 @@ const Profile = ({ user }) => {
                         const endpoint = type === 'exp' ? 'experience' : type === 'edu' ? 'education' : 'certifications';
                         const data = type === 'exp' ? expData : type === 'edu' ? eduData : certData;
                         handleUpdate(e, endpoint, data);
-                    }}>
+                    }} className="profile-form">
+                        
                         {type === 'exp' && (
                             <>
-                                <input type="text" placeholder="Role" required onChange={e => setExpData({...expData, role: e.target.value})} />
+                                <input type="text" placeholder="Role (e.g. SDE Intern)" required onChange={e => setExpData({...expData, role: e.target.value})} />
                                 <input type="text" placeholder="Company" required onChange={e => setExpData({...expData, company: e.target.value})} />
-                                <input type="text" placeholder="From (MM/YY)" required onChange={e => setExpData({...expData, from: e.target.value})} />
+                                <label>Start Date</label>
+                                <input type="date" required onChange={e => setExpData({...expData, from: e.target.value})} />
+                                <label>End Date (Optional)</label>
+                                <input type="date" onChange={e => setExpData({...expData, to: e.target.value})} />
+                                <textarea placeholder="Description of your responsibilities" onChange={e => setExpData({...expData, description: e.target.value})} />
                             </>
                         )}
+
                         {type === 'edu' && (
                             <>
                                 <input type="text" placeholder="University" required onChange={e => setEduData({...eduData, school: e.target.value})} />
@@ -160,15 +173,19 @@ const Profile = ({ user }) => {
                                 <input type="text" placeholder="Year" required onChange={e => setEduData({...eduData, year: e.target.value})} />
                             </>
                         )}
+
                         {type === 'cert' && (
                             <>
                                 <input type="text" placeholder="Certification Name" required onChange={e => setCertData({...certData, name: e.target.value})} />
-                                <input type="text" placeholder="Issuing Org" required onChange={e => setCertData({...certData, issuingOrganization: e.target.value})} />
-                                <input type="text" placeholder="Credential URL" onChange={e => setCertData({...certData, credentialUrl: e.target.value})} />
+                                <input type="text" placeholder="Issuing Organization (e.g. Unstop)" required onChange={e => setCertData({...certData, issuingOrganization: e.target.value})} />
+                                <label>Issue Date</label>
+                                <input type="date" onChange={e => setCertData({...certData, issueDate: e.target.value})} />
+                                <input type="url" placeholder="Credential URL" onChange={e => setCertData({...certData, credentialUrl: e.target.value})} />
                             </>
                         )}
+
                         <div className="modal-actions">
-                            <button type="button" className="cancel-btn" onClick={() => setModalConfig({ type: null, isOpen: false })}>Cancel</button>
+                            <button type="button" className="cancel-btn" onClick={() => setModalConfig({ isOpen: false })}>Cancel</button>
                             <button type="submit" className="save-btn">Save</button>
                         </div>
                     </form>
