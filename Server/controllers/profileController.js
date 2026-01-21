@@ -66,3 +66,31 @@ exports.addCertification = async (req, res) => {
         res.status(500).json({ message: "Error adding certification" });
     }
 };
+
+// Server/controllers/profileController.js
+
+// Edit an entry (Update inside array)
+exports.editItem = async (req, res) => {
+    const { collection, itemId } = req.params; // e.g., collection = 'experience'
+    try {
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user.id, [`${collection}._id`]: itemId },
+            { $set: { [`${collection}.$`]: req.body } },
+            { new: true }
+        );
+        res.json(profile);
+    } catch (err) { res.status(500).json({ message: "Update failed" }); }
+};
+
+// Delete an entry (Remove from array)
+exports.deleteItem = async (req, res) => {
+    const { collection, itemId } = req.params;
+    try {
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user.id },
+            { $pull: { [collection]: { _id: itemId } } },
+            { new: true }
+        );
+        res.json(profile);
+    } catch (err) { res.status(500).json({ message: "Delete failed" }); }
+};

@@ -274,3 +274,33 @@ form label {
     color: #666;
     margin: 10px 0 5px;
 }
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.edit-link, .delete-link {
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: right;
+}
+
+.edit-link { color: #0a66c2; font-weight: 600; }
+.delete-link { color: #cc0000; }
+
+.desc-text {
+    font-size: 0.9rem;
+    color: #444;
+    margin-top: 8px;
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+}
+
+.date-row {
+    display: flex;
+    gap: 10px;
+}
