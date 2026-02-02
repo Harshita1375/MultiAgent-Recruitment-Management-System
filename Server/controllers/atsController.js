@@ -18,7 +18,7 @@ exports.checkATS = async (req, res) => {
 
         // Use environment variable for the NLP service URL
         // Fallback to localhost:8000 if the variable isn't set (local dev)
-        const nlpServiceUrl = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
+        const nlpServiceUrl = process.env.NLP_SERVICE_URL || 'https://multiagent-recruitment-management-system.onrender.com';
 
         // Forward to the dynamic NLP Service endpoint
         const nlpResponse = await axios.post(`${nlpServiceUrl}/api/ats/rank`, formData, {
