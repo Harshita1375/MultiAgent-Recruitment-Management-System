@@ -16,14 +16,28 @@ exports.checkATS = async (req, res) => {
             formData.append('resumes', file.buffer, file.originalname);
         });
 
-        // Forward to your local NLP Service
-        const nlpResponse = await axios.post('http://localhost:8000/api/ats/rank', formData, {
-            headers: { ...formData.getHeaders() }
+        // Use environment variable for the NLP service URL
+        // Fallback to localhost:8000 if the variable isn't set (local dev)
+        const nlpServiceUrl = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
+
+        // Forward to the dynamic NLP Service endpoint
+        const nlpResponse = await axios.post(`${nlpServiceUrl}/api/ats/rank`, formData, {
+            headers: { 
+                ...formData.getHeaders() 
+            },
+            // Increase timeout for large PDF processing or slow Render "cold starts"
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
         });
 
         res.json(nlpResponse.data);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "ATS scoring service failed" });
+        // Detailed error logging to help debug connection issues between services
+        console.error("ATS Service Error:", err.response?.data || err.message);
+        
+        const statusCode = err.response?.status || 500;
+        const errorMessage = err.response?.data?.message || "ATS scoring service failed. Check if NLP service is running.";
+        
+        res.status(statusCode).json({ message: errorMessage });
     }
 };
