@@ -6,7 +6,7 @@ const Profile = ({ user }) => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     
-    // modalConfig now tracks if we are editing and which item ID
+    // modalConfig tracks editing status and item IDs
     const [modalConfig, setModalConfig] = useState({ 
         type: null, 
         isOpen: false, 
@@ -14,16 +14,16 @@ const Profile = ({ user }) => {
         id: null 
     });
 
-    // Unified form state for all sections
+    // Unified form state initialized with empty strings to prevent console warnings
     const [formData, setFormData] = useState({
-        school: '', degree: '', year: '', toYear: '', // Education
-        company: '', role: '', from: '', to: '', description: '', // Experience
-        name: '', issuingOrganization: '', issueDate: '', credentialUrl: '' // Certs
+        school: '', degree: '', year: '', toYear: '',
+        company: '', role: '', from: '', to: '', description: '',
+        name: '', issuingOrganization: '', issueDate: '', credentialUrl: ''
     });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
-    const headers = { 'Authorization': `Bearer ${token}` }; //
+    const headers = { 'Authorization': `Bearer ${token}` };
 
     const fetchProfile = async () => {
         try {
@@ -38,7 +38,33 @@ const Profile = ({ user }) => {
 
     useEffect(() => { fetchProfile(); }, []);
 
-    // Function to handle Deletion
+    // NEW: Robust Image Upload Logic
+    const handleFileChange = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        // Ensure field names match your backend upload.single('avatar/cover')
+        uploadData.append(type === 'avatar' ? 'avatar' : 'cover', file);
+
+        try {
+            const endpoint = type === 'avatar' ? 'upload-avatar' : 'upload-cover';
+            await axios.post(`${API_URL}/api/profile/${endpoint}`, uploadData, {
+                headers: { 
+                    ...headers,
+                    'Content-Type': 'multipart/form-data' 
+                }
+            });
+            fetchProfile(); // Refresh to show new image
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message;
+            console.error("Upload Error Details:", err.response?.data);
+            alert(`Upload failed: ${errorMsg}`);
+        } finally {
+            e.target.value = null; // Clear the input
+        }
+    };
+
     const handleDelete = async (collection, itemId) => {
         if (window.confirm("Are you sure you want to delete this entry?")) {
             try {
@@ -50,7 +76,6 @@ const Profile = ({ user }) => {
         }
     };
 
-    // Unified Submit for Add AND Edit
     const handleSubmit = async (e) => {
         e.preventDefault();
         const { type, isEdit, id } = modalConfig;
@@ -58,31 +83,33 @@ const Profile = ({ user }) => {
         
         try {
             if (isEdit) {
-                // PUT to a specific item ID for editing
                 await axios.put(`${API_URL}/api/profile/${collection}/${id}`, formData, { headers });
             } else {
-                // Standard PUT to add a new item to the array
                 await axios.put(`${API_URL}/api/profile/${collection}`, formData, { headers });
             }
             setModalConfig({ type: null, isOpen: false, isEdit: false, id: null });
             fetchProfile();
         } catch (err) {
-            alert("Error saving data. Please try again.");
+            alert("Error saving data.");
         }
     };
 
     const openModal = (type, isEdit = false, item = null) => {
         if (isEdit && item) {
-            // Populate form with existing data for editing
             setFormData({
                 ...item,
                 from: item.from ? item.from.split('T')[0] : '',
                 to: item.to ? item.to.split('T')[0] : '',
-                issueDate: item.issueDate ? item.issueDate.split('T')[0] : ''
+                issueDate: item.issueDate ? item.issueDate.split('T')[0] : '',
+                description: item.description || '' // Ensure fallback to string
             });
             setModalConfig({ type, isOpen: true, isEdit: true, id: item._id });
         } else {
-            setFormData({}); // Clear form for new entry
+            setFormData({
+                school: '', degree: '', year: '', toYear: '',
+                company: '', role: '', from: '', to: '', description: '',
+                name: '', issuingOrganization: '', issueDate: '', credentialUrl: ''
+            });
             setModalConfig({ type, isOpen: true, isEdit: false, id: null });
         }
     };
@@ -104,12 +131,37 @@ const Profile = ({ user }) => {
 
     return (
         <div className="profile-page">
-            <header className="profile-card profile-header">
-                <div className="cover-photo"></div>
-                <div className="header-body">
-                    <div className="avatar-circle">👤</div>
-                    <h2>{user?.name || "User"}</h2>
-                    <p className="headline">Final-Year B.Tech CSE || Full-Stack Developer</p>
+            <header className="profile-card profile-header-container">
+                <div className="cover-photo-wrapper">
+                    <img 
+                        src={profile.coverPhoto ? `${API_URL}${profile.coverPhoto}` : '/default-cover.jpg'} 
+                        className="cover-image" 
+                        alt="Cover"
+                        onError={(e) => e.target.src = '/default-cover.jpg'} 
+                    />
+                    <label className="upload-label cover-upload">
+                        <input type="file" hidden onChange={(e) => handleFileChange(e, 'cover')} />
+                        Change Cover 📷
+                    </label>
+                </div>
+
+                <div className="header-details-row">
+                    <div className="avatar-container">
+                        <img 
+                            src={profile.profilePicture ? `${API_URL}${profile.profilePicture}` : '/default-avatar.png'} 
+                            className="profile-avatar" 
+                            alt="Avatar"
+                            onError={(e) => e.target.src = '/default-avatar.png'}
+                        />
+                        <label className="avatar-upload-icon">
+                            <input type="file" hidden onChange={(e) => handleFileChange(e, 'avatar')} />
+                            📷
+                        </label>
+                    </div>
+                    <div className="user-info-text">
+                        <h2>{user?.name || "User"}</h2>
+                        <p className="headline">Final-Year B.Tech CSE || Full-Stack Developer</p>
+                    </div>
                 </div>
             </header>
 
@@ -192,7 +244,6 @@ const Profile = ({ user }) => {
                 <div className="modal-content">
                     <h3>{isEdit ? 'Edit' : 'Add'} {type === 'exp' ? 'Experience' : type === 'edu' ? 'Education' : 'Certification'}</h3>
                     <form onSubmit={handleSubmit} className="profile-form">
-                        
                         {type === 'exp' && (
                             <>
                                 <input type="text" placeholder="Role" required value={formData.role || ''} onChange={e => setFormData({...formData, role: e.target.value})} />

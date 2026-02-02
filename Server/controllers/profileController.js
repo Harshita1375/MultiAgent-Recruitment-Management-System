@@ -94,3 +94,35 @@ exports.deleteItem = async (req, res) => {
         res.json(profile);
     } catch (err) { res.status(500).json({ message: "Delete failed" }); }
 };
+// Server/controllers/profileController.js
+
+// Ensure every function you reference in routes is exported here
+exports.uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+        
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user.id },
+            { $set: { profilePicture: `/uploads/${req.file.filename}` } },
+            { new: true, upsert: true }
+        );
+        res.json(profile);
+    } catch (err) {
+        res.status(500).json({ message: "Upload failed" });
+    }
+};
+
+exports.uploadCover = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user.id },
+            { $set: { coverPhoto: `/uploads/${req.file.filename}` } },
+            { new: true, upsert: true }
+        );
+        res.json(profile);
+    } catch (err) {
+        res.status(500).json({ message: "Upload failed" });
+    }
+};
