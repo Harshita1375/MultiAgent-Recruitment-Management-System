@@ -24,7 +24,7 @@ const CandidateDashboard = ({ user, setUser }) => {
       description: "Analyze how well your resume matches job descriptions.",
       buttonText: "Upload Resume",
       icon: "📊",
-      action: () => alert("ATS Checker coming soon!")
+      action: () => navigate('/ats-checker')
     },
     {
       title: "Job Recommendations",
