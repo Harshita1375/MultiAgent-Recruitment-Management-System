@@ -43,6 +43,8 @@ function App() {
     );
   }
 
+  console.log("Current API URL being used:", process.env.REACT_APP_API_URL);
+
   return (
     <Router>
       <Routes>
