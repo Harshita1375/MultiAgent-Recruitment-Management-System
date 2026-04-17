@@ -10,38 +10,40 @@ const Login = ({ setUser }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const navigate = useNavigate();
 
-  // Unified function to handle navigation based on user role
+  // FIX: Define API_URL to use the environment variable
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
   const handlePostAuth = (user, token) => {
     localStorage.setItem('token', token);
     setUser(user);
-    // Redirects to the specific dashboard based on the role stored in DB
     navigate(`/${user.role}-dashboard`);
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-  try {
-    const res = await axios.post('http://localhost:5000/api/auth/google', {
-      token: credentialResponse.credential
-    });
+    try {
+      // FIX: Use ${API_URL} instead of localhost
+      const res = await axios.post(`${API_URL}/api/auth/google`, {
+        token: credentialResponse.credential
+      });
 
-    if (res.data.isNewUser) {
-      // Send them to the role selection page with their Google data
-      navigate('/select-role', { state: { googleData: res.data.googleData } });
-    } else {
-      localStorage.setItem('token', res.data.sessionToken);
-      setUser(res.data.user);
-      navigate(`/${res.data.user.role}-dashboard`);
+      if (res.data.isNewUser) {
+        navigate('/select-role', { state: { googleData: res.data.googleData } });
+      } else {
+        localStorage.setItem('token', res.data.sessionToken);
+        setUser(res.data.user);
+        navigate(`/${res.data.user.role}-dashboard`);
+      }
+    } catch (err) {
+      console.error("Google Auth Failed", err);
     }
-  } catch (err) {
-    console.error("Google Auth Failed", err);
-  }
-};
+  };
 
   const handleManualAuth = async (e) => {
     e.preventDefault();
     const endpoint = isSignup ? 'register' : 'login';
     try {
-      const res = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, {
+      // FIX: Use ${API_URL} instead of localhost
+      const res = await axios.post(`${API_URL}/api/auth/${endpoint}`, {
         ...formData,
         role: isSignup ? role : undefined
       });
@@ -50,7 +52,6 @@ const Login = ({ setUser }) => {
       alert(err.response?.data?.message || "Authentication Failed");
     }
   };
-
   return (
     <div className="login-container">
       <div className="login-card">
