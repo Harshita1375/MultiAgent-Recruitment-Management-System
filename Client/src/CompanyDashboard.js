@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import { Line } from 'react-chartjs-2';
+import axios from 'axios'; // Ensure axios is imported
+import JobPostForm from './JobPostForm'; // Ensure this is imported
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -12,23 +14,62 @@ import {
 } from 'chart.js';
 import './CompanyDashboard.css';
 
-// Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const CompanyDashboard = ({ user, handleLogout }) => {
+    // 1. ALL HOOKS MUST BE INSIDE THE COMPONENT
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [jobs, setJobs] = useState([]);
+    
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
+
+    // 2. HELPER FUNCTIONS INSIDE THE COMPONENT
+    const fetchJobs = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/api/jobs/my-jobs`, { headers });
+            setJobs(res.data);
+        } catch (err) {
+            console.error("Error fetching jobs:", err);
+        }
+    };
+
+    // Fetch jobs on initial load
+    useEffect(() => {
+        fetchJobs();
+    }, []);
+
+    const handleDelete = async (jobId) => {
+        if (window.confirm("Delete this job posting?")) {
+            try {
+                await axios.delete(`${API_URL}/api/jobs/${jobId}`, { headers });
+                fetchJobs();
+            } catch (err) {
+                alert("Failed to delete job.");
+            }
+        }
+    };
+
+    const handleEdit = (job) => {
+        setSelectedJob(job);
+        setIsModalOpen(true);
+    };
+
+    const handleCreateNew = () => {
+        setSelectedJob(null);
+        setIsModalOpen(true);
+    };
+
+    // 3. UI DATA CONFIGS
     const stats = [
         { label: "My Companies", count: "05", icon: "🏛️", color: "#27ae60" },
-        { label: "My Jobs", count: "08", icon: "💼", color: "#2980b9" },
+        { label: "My Jobs", count: jobs.length || "0", icon: "💼", color: "#2980b9" }, // Dynamic count
         { label: "Applied Resumes", count: "03", icon: "📄", color: "#f39c12" },
         { label: "Active Postings", count: "01", icon: "✨", color: "#e74c3c" }
     ];
 
-    const jobsData = [
-        { title: "Green Development Marketer", location: "Jamshedpur", salary: "₹50k-70k", candidates: 15, status: "Full Time" },
-        { title: "AI Research Scientist", location: "Remote", salary: "₹1.2L-1.5L", candidates: 7, status: "Full Time" }
-    ];
-
-    // Chart Data Config
     const chartData = {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [
@@ -37,7 +78,7 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                 data: [30, 90, 45, 80, 55, 95],
                 borderColor: '#2980b9',
                 backgroundColor: 'rgba(41, 128, 185, 0.2)',
-                tension: 0.4, // This creates the "wavy" look from your image
+                tension: 0.4,
             },
             {
                 label: 'Interviews',
@@ -51,12 +92,8 @@ const CompanyDashboard = ({ user, handleLogout }) => {
 
     const chartOptions = {
         responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-        },
-        scales: {
-            y: { beginAtZero: true }
-        }
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
     };
 
     return (
@@ -72,7 +109,7 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                     <span>Candidates</span>
                 </div>
                 <div className="hq-profile-actions">
-                    <button className="hq-post-job-btn">+ Post Job</button>
+                    <button className="hq-post-job-btn" onClick={handleCreateNew}>+ Post Job</button>
                     <button className="hq-logout-btn" onClick={handleLogout}>Logout</button>
                 </div>
             </header>
@@ -89,7 +126,7 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                         <h4>{user?.name}</h4>
                     </div>
                     <nav className="hq-sidebar-nav">
-                        <button className="sidebar-link active-link">➕ Create a Post</button>
+                        <button className="sidebar-link active-link" onClick={handleCreateNew}>➕ Create a Post</button>
                         <button className="sidebar-link">📊 Active Jobs</button>
                         <button className="sidebar-link">🗓️ Schedule Interview</button>
                         <button className="sidebar-link">📩 Messages</button>
@@ -111,7 +148,6 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                         ))}
                     </section>
 
-                    {/* NEW: Statistics Chart Section */}
                     <section className="hq-card chart-section">
                         <h3>Recruitment Analytics</h3>
                         <div className="chart-container">
@@ -124,27 +160,35 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                             <h3>My Jobs</h3>
                         </div>
                         <div className="hq-jobs-list">
-                            {jobsData.map((job, i) => (
+                            {/* Render REAL jobs from backend */}
+                            {jobs.length > 0 ? jobs.map((job, i) => (
                                 <div key={i} className="hq-job-listing-item">
                                     <div className="job-meta-main">
-                                        <div className="job-brand-icon">{job.title.charAt(0)}</div>
+                                        <div className="job-brand-icon">{job.title?.charAt(0)}</div>
                                         <div className="job-details-text">
-                                            <span className="job-status-tag">{job.status}</span>
+                                            <span className="job-status-tag">{job.jobType || 'Full Time'}</span>
                                             <h4>{job.title}</h4>
                                             <p>{job.location} • {job.salary}</p>
                                         </div>
                                     </div>
-                                    <div className="applicant-pill">Resumes (<b>{job.candidates}</b>)</div>
+                                    <div className="applicant-pill">Resumes (<b>{job.applicants?.length || 0}</b>)</div>
                                     <div className="job-actions">
-                                        <button className="job-action-icon">✎</button>
-                                        <button className="job-action-icon">🗑</button>
+                                        <button className="job-action-icon" onClick={() => handleEdit(job)}>✎</button>
+                                        <button className="job-action-icon" onClick={() => handleDelete(job._id)}>🗑</button>
                                     </div>
                                 </div>
-                            ))}
+                            )) : <p>No jobs posted yet.</p>}
                         </div>
                     </section>
                 </main>
             </div>
+
+            <JobPostForm 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                fetchJobs={fetchJobs} 
+                editJobData={selectedJob} 
+            />
         </div>
     );
 };
