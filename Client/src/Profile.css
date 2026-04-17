@@ -370,3 +370,23 @@ form label {
     display: flex;
     gap: 10px;
 }
+
+.name-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #666;
+    padding: 5px;
+    transition: color 0.2s;
+}
+
+.edit-icon-btn:hover {
+    color: #0a66c2; /* LinkedIn Blue */
+}

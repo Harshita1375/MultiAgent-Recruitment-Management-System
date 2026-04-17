@@ -18,7 +18,7 @@ const Profile = ({ user }) => {
     const [formData, setFormData] = useState({
         school: '', degree: '', year: '', toYear: '',
         company: '', role: '', from: '', to: '', description: '',
-        name: '', issuingOrganization: '', issueDate: '', credentialUrl: ''
+        name: '', issuingOrganization: '', issueDate: '', credentialUrl: '',headline:''
     });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -77,25 +77,41 @@ const Profile = ({ user }) => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        const { type, isEdit, id } = modalConfig;
-        const collection = type === 'exp' ? 'experience' : type === 'edu' ? 'education' : 'certifications';
-        
-        try {
+    e.preventDefault();
+    const { type, isEdit, id } = modalConfig;
+    
+    try {
+        if (type === 'info') {
+            // Update general name and headline
+            await axios.post(`${API_URL}/api/profile`, { 
+                name: formData.name, 
+                headline: formData.headline 
+            }, { headers });
+        } else {
+            // Existing logic for collections
+            const collection = type === 'exp' ? 'experience' : type === 'edu' ? 'education' : 'certifications';
             if (isEdit) {
                 await axios.put(`${API_URL}/api/profile/${collection}/${id}`, formData, { headers });
             } else {
                 await axios.put(`${API_URL}/api/profile/${collection}`, formData, { headers });
             }
-            setModalConfig({ type: null, isOpen: false, isEdit: false, id: null });
-            fetchProfile();
-        } catch (err) {
-            alert("Error saving data.");
         }
-    };
+        setModalConfig({ type: null, isOpen: false, isEdit: false, id: null });
+        fetchProfile();
+    } catch (err) {
+        alert("Error saving data.");
+    }
+};
 
     const openModal = (type, isEdit = false, item = null) => {
-        if (isEdit && item) {
+        if (type === 'info') {
+        setFormData({
+            name: item.name || user?.name || '',
+            headline: item.headline || ''
+        });
+        setModalConfig({ type: 'info', isOpen: true, isEdit: true, id: null });
+    }
+        else if (isEdit && item) {
             setFormData({
                 ...item,
                 from: item.from ? item.from.split('T')[0] : '',
@@ -159,8 +175,12 @@ const Profile = ({ user }) => {
                         </label>
                     </div>
                     <div className="user-info-text">
-                        <h2>{user?.name || "User"}</h2>
-                        <p className="headline">Final-Year B.Tech CSE || Full-Stack Developer</p>
+                        <div className="name-edit-row">
+        <h2>{profile.name || user?.name || "User"}</h2>
+        {/* Pass 'info' as the type and the profile object as the item */}
+        <button className="edit-icon-btn" onClick={() => openModal('info', true, profile)}>✎</button>
+    </div>
+    <p className="headline">{profile.headline || "Final-Year B.Tech CSE || Full-Stack Developer"}</p>
                     </div>
                 </div>
             </header>
@@ -244,6 +264,24 @@ const Profile = ({ user }) => {
                 <div className="modal-content">
                     <h3>{isEdit ? 'Edit' : 'Add'} {type === 'exp' ? 'Experience' : type === 'edu' ? 'Education' : 'Certification'}</h3>
                     <form onSubmit={handleSubmit} className="profile-form">
+                        {type === 'info' && (
+    <>
+        <label>Display Name</label>
+        <input 
+            type="text" 
+            placeholder="Name" 
+            required 
+            value={formData.name || ''} 
+            onChange={e => setFormData({...formData, name: e.target.value})} 
+        />
+        <label>Headline</label>
+        <textarea 
+            placeholder="e.g. Full-Stack Developer | Open to Work" 
+            value={formData.headline || ''} 
+            onChange={e => setFormData({...formData, headline: e.target.value})} 
+        />
+    </>
+)}
                         {type === 'exp' && (
                             <>
                                 <input type="text" placeholder="Role" required value={formData.role || ''} onChange={e => setFormData({...formData, role: e.target.value})} />
