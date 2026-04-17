@@ -11,14 +11,11 @@ exports.checkATS = async (req, res) => {
         const formData = new FormData();
         formData.append('jd', jd);
         
-        // Append each file buffer to the new form
         req.files.forEach(file => {
             formData.append('resumes', file.buffer, file.originalname);
         });
 
-        // Use environment variable for the NLP service URL
-        // Fallback to localhost:8000 if the variable isn't set (local dev)
-        // Matches the service name in your screenshot: nlp_service_job_portal
+        
         const nlpServiceUrl = process.env.NLP_SERVICE_URL || 'https://nlp-service-job-portal.onrender.com';
 
         // Forward to the dynamic NLP Service endpoint
@@ -26,7 +23,6 @@ exports.checkATS = async (req, res) => {
             headers: { 
                 ...formData.getHeaders() 
             },
-            // Increase timeout for large PDF processing or slow Render "cold starts"
             maxContentLength: Infinity,
             maxBodyLength: Infinity
         });

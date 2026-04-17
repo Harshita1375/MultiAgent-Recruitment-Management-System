@@ -10,17 +10,18 @@ const atsRoutes = require('./routes/atsRoutes'); // 1. Import the new ATS routes
 const app = express();
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://multi-agent-recruitment-management-tau.vercel.app"],
+    origin: ["http://localhost:3000", "https://multi-agent-recruitment-management-tau.vercel.app", "https://multi-agent-recruitment-management.vercel.app"],
     credentials: true
 }));
 
 app.use(express.json());
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  next();
-});
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.get('/', (req, res) => {
+    res.status(200).send("🚀 Multi-Agent Recruitment Backend is Running!");
+});
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ Database Connected"))
