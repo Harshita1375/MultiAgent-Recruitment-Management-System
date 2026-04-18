@@ -1,0 +1,107 @@
+.recommendation-container {
+    padding: 30px;
+    background: #f8f9fa;
+}
+
+.rec-header {
+    margin-bottom: 25px;
+}
+
+.job-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.rec-job-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+}
+
+.rec-job-card:hover {
+    transform: translateY(-5px);
+}
+
+.match-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.company-tag {
+    color: #0a66c2;
+    font-weight: 600;
+    margin: 5px 0;
+}
+
+.matched-skills {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-pill {
+    background: #eef3f8;
+    color: #0a66c2;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #d0e1f1;
+}
+
+.apply-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background: #0a66c2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+/* Add this to your existing CSS */
+
+.detail-modal {
+    max-width: 750px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.detail-meta {
+    display: flex;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.detail-description {
+    margin-bottom: 25px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.detail-description h4, .matched-skills-section h4 {
+    color: #0a66c2;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.matched-skills-section {
+    margin-bottom: 20px;
+}

@@ -1,6 +1,59 @@
 const Job = require('../models/Job');
 
-// 1. Create a New Job
+const Application = require('../models/Application');
+
+exports.applyToJob = async (req, res) => {
+    try {
+        const { jobId } = req.params;
+
+        // 1. Check resume upload
+        if (!req.file) {
+            return res.status(400).json({ message: "Please upload your resume" });
+        }
+
+        // 2. Check job exists
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        // 3. ❗ Prevent duplicate applications
+        const alreadyApplied = await Application.findOne({
+            job: jobId,
+            candidate: req.user.id
+        });
+
+        if (alreadyApplied) {
+            return res.status(400).json({ message: "You already applied to this job" });
+        }
+
+        // 4. Create application
+        const application = new Application({
+            job: jobId,
+            candidate: req.user.id,
+            employer: job.employer,
+            resumeUrl: req.file.path,
+            status: "Pending"
+        });
+
+        await application.save();
+
+        // 5. Optional: store applicant in Job (for quick count)
+        await Job.findByIdAndUpdate(jobId, {
+            $addToSet: { applicants: req.user.id } // avoids duplicates
+        });
+
+        res.status(201).json({
+            message: "Application submitted successfully",
+            application
+        });
+
+    } catch (err) {
+        console.error("Apply Error:", err);
+        res.status(500).json({ message: err.message });
+    }
+};
+
 exports.createJob = async (req, res) => {
     try {
         const newJob = new Job({

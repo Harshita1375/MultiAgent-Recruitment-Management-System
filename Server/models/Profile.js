@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const ProfileSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name: { type: String }, // Add this for the Display Name
+  name: { type: String },
   headline: { type: String },
-  profilePicture: { type: String, default: '' }, // Path to the uploaded image
+  profilePicture: { type: String, default: '' },
   coverPhoto: { type: String, default: '' },
   bio: { type: String },
   location: { type: String },
@@ -12,8 +12,8 @@ const ProfileSchema = new mongoose.Schema({
   experience: [{
     company: { type: String },
     role: { type: String },
-    from: { type: Date }, // Expects Date object
-    to: { type: Date },   // Expects Date object
+    from: { type: Date },
+    to: { type: Date },
     description: { type: String }
   }],
   education: [{

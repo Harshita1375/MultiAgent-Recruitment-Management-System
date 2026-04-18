@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Added useEffect
 import { Line } from 'react-chartjs-2';
 import axios from 'axios'; // Ensure axios is imported
-import JobPostForm from './JobPostForm'; // Ensure this is imported
+import JobPostForm from './JobPostForm'; 
 import {
     Chart as ChartJS,
     CategoryScale,

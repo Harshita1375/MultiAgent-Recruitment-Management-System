@@ -31,7 +31,7 @@ const CandidateDashboard = ({ user, setUser }) => {
       description: "Personalized job matches based on your tech stack.",
       buttonText: "Find Jobs",
       icon: "💼",
-      action: () => alert("Job recommendations feature coming soon!")
+      action: () => navigate('/recommendations')
     }
   ];
 

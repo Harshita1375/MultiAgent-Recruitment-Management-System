@@ -5,20 +5,20 @@ import './Profile.css';
 const Profile = ({ user }) => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    
+
     // modalConfig tracks editing status and item IDs
-    const [modalConfig, setModalConfig] = useState({ 
-        type: null, 
-        isOpen: false, 
-        isEdit: false, 
-        id: null 
+    const [modalConfig, setModalConfig] = useState({
+        type: null,
+        isOpen: false,
+        isEdit: false,
+        id: null
     });
 
     // Unified form state initialized with empty strings to prevent console warnings
     const [formData, setFormData] = useState({
         school: '', degree: '', year: '', toYear: '',
         company: '', role: '', from: '', to: '', description: '',
-        name: '', issuingOrganization: '', issueDate: '', credentialUrl: '',headline:''
+        name: '', issuingOrganization: '', issueDate: '', credentialUrl: '', headline: ''
     });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -50,9 +50,9 @@ const Profile = ({ user }) => {
         try {
             const endpoint = type === 'avatar' ? 'upload-avatar' : 'upload-cover';
             await axios.post(`${API_URL}/api/profile/${endpoint}`, uploadData, {
-                headers: { 
+                headers: {
                     ...headers,
-                    'Content-Type': 'multipart/form-data' 
+                    'Content-Type': 'multipart/form-data'
                 }
             });
             fetchProfile(); // Refresh to show new image
@@ -77,40 +77,39 @@ const Profile = ({ user }) => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { type, isEdit, id } = modalConfig;
-    
-    try {
-        if (type === 'info') {
-            // Update general name and headline
-            await axios.post(`${API_URL}/api/profile`, { 
-                name: formData.name, 
-                headline: formData.headline 
-            }, { headers });
-        } else {
-            // Existing logic for collections
-            const collection = type === 'exp' ? 'experience' : type === 'edu' ? 'education' : 'certifications';
-            if (isEdit) {
-                await axios.put(`${API_URL}/api/profile/${collection}/${id}`, formData, { headers });
+        e.preventDefault();
+        const { type, isEdit, id } = modalConfig;
+
+        try {
+            if (type === 'info') {
+                await axios.post(`${API_URL}/api/profile`, {
+                    name: formData.name,
+                    headline: formData.headline
+                }, { headers });
             } else {
-                await axios.put(`${API_URL}/api/profile/${collection}`, formData, { headers });
+                // Existing logic for collections
+                const collection = type === 'exp' ? 'experience' : type === 'edu' ? 'education' : 'certifications';
+                if (isEdit) {
+                    await axios.put(`${API_URL}/api/profile/${collection}/${id}`, formData, { headers });
+                } else {
+                    await axios.put(`${API_URL}/api/profile/${collection}`, formData, { headers });
+                }
             }
+            setModalConfig({ type: null, isOpen: false, isEdit: false, id: null });
+            fetchProfile();
+        } catch (err) {
+            alert("Error saving data.");
         }
-        setModalConfig({ type: null, isOpen: false, isEdit: false, id: null });
-        fetchProfile();
-    } catch (err) {
-        alert("Error saving data.");
-    }
-};
+    };
 
     const openModal = (type, isEdit = false, item = null) => {
         if (type === 'info') {
-        setFormData({
-            name: item.name || user?.name || '',
-            headline: item.headline || ''
-        });
-        setModalConfig({ type: 'info', isOpen: true, isEdit: true, id: null });
-    }
+            setFormData({
+                name: item.name || user?.name || '',
+                headline: item.headline || ''
+            });
+            setModalConfig({ type: 'info', isOpen: true, isEdit: true, id: null });
+        }
         else if (isEdit && item) {
             setFormData({
                 ...item,
@@ -149,11 +148,11 @@ const Profile = ({ user }) => {
         <div className="profile-page">
             <header className="profile-card profile-header-container">
                 <div className="cover-photo-wrapper">
-                    <img 
-                        src={profile.coverPhoto ? `${API_URL}${profile.coverPhoto}` : '/default-cover.jpg'} 
-                        className="cover-image" 
+                    <img
+                        src={profile.coverPhoto ? `${API_URL}${profile.coverPhoto}` : '/default-cover.jpg'}
+                        className="cover-image"
                         alt="Cover"
-                        onError={(e) => e.target.src = '/default-cover.jpg'} 
+                        onError={(e) => e.target.src = '/default-cover.jpg'}
                     />
                     <label className="upload-label cover-upload">
                         <input type="file" hidden onChange={(e) => handleFileChange(e, 'cover')} />
@@ -163,9 +162,9 @@ const Profile = ({ user }) => {
 
                 <div className="header-details-row">
                     <div className="avatar-container">
-                        <img 
-                            src={profile.profilePicture ? `${API_URL}${profile.profilePicture}` : '/default-avatar.png'} 
-                            className="profile-avatar" 
+                        <img
+                            src={profile.profilePicture ? `${API_URL}${profile.profilePicture}` : '/default-avatar.png'}
+                            className="profile-avatar"
                             alt="Avatar"
                             onError={(e) => e.target.src = '/default-avatar.png'}
                         />
@@ -176,11 +175,11 @@ const Profile = ({ user }) => {
                     </div>
                     <div className="user-info-text">
                         <div className="name-edit-row">
-        <h2>{profile.name || user?.name || "User"}</h2>
-        {/* Pass 'info' as the type and the profile object as the item */}
-        <button className="edit-icon-btn" onClick={() => openModal('info', true, profile)}>✎</button>
-    </div>
-    <p className="headline">{profile.headline || "Final-Year B.Tech CSE || Full-Stack Developer"}</p>
+                            <h2>{profile.name || user?.name || "User"}</h2>
+                            {/* Pass 'info' as the type and the profile object as the item */}
+                            <button className="edit-icon-btn" onClick={() => openModal('info', true, profile)}>✎</button>
+                        </div>
+                        <p className="headline">{profile.headline || "Final-Year B.Tech CSE || Full-Stack Developer"}</p>
                     </div>
                 </div>
             </header>
@@ -265,59 +264,59 @@ const Profile = ({ user }) => {
                     <h3>{isEdit ? 'Edit' : 'Add'} {type === 'exp' ? 'Experience' : type === 'edu' ? 'Education' : 'Certification'}</h3>
                     <form onSubmit={handleSubmit} className="profile-form">
                         {type === 'info' && (
-    <>
-        <label>Display Name</label>
-        <input 
-            type="text" 
-            placeholder="Name" 
-            required 
-            value={formData.name || ''} 
-            onChange={e => setFormData({...formData, name: e.target.value})} 
-        />
-        <label>Headline</label>
-        <textarea 
-            placeholder="e.g. Full-Stack Developer | Open to Work" 
-            value={formData.headline || ''} 
-            onChange={e => setFormData({...formData, headline: e.target.value})} 
-        />
-    </>
-)}
+                            <>
+                                <label>Display Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="Name"
+                                    required
+                                    value={formData.name || ''}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                />
+                                <label>Headline</label>
+                                <textarea
+                                    placeholder="e.g. Full-Stack Developer | Open to Work"
+                                    value={formData.headline || ''}
+                                    onChange={e => setFormData({ ...formData, headline: e.target.value })}
+                                />
+                            </>
+                        )}
                         {type === 'exp' && (
                             <>
-                                <input type="text" placeholder="Role" required value={formData.role || ''} onChange={e => setFormData({...formData, role: e.target.value})} />
-                                <input type="text" placeholder="Company" required value={formData.company || ''} onChange={e => setFormData({...formData, company: e.target.value})} />
+                                <input type="text" placeholder="Role" required value={formData.role || ''} onChange={e => setFormData({ ...formData, role: e.target.value })} />
+                                <input type="text" placeholder="Company" required value={formData.company || ''} onChange={e => setFormData({ ...formData, company: e.target.value })} />
                                 <div className="date-row">
                                     <div className="date-input">
                                         <label>Start Date</label>
-                                        <input type="date" required value={formData.from || ''} onChange={e => setFormData({...formData, from: e.target.value})} />
+                                        <input type="date" required value={formData.from || ''} onChange={e => setFormData({ ...formData, from: e.target.value })} />
                                     </div>
                                     <div className="date-input">
                                         <label>End Date</label>
-                                        <input type="date" value={formData.to || ''} onChange={e => setFormData({...formData, to: e.target.value})} />
+                                        <input type="date" value={formData.to || ''} onChange={e => setFormData({ ...formData, to: e.target.value })} />
                                     </div>
                                 </div>
-                                <textarea placeholder="Job Description" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
+                                <textarea placeholder="Job Description" value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                             </>
                         )}
 
                         {type === 'edu' && (
                             <>
-                                <input type="text" placeholder="University" required value={formData.school || ''} onChange={e => setFormData({...formData, school: e.target.value})} />
-                                <input type="text" placeholder="Degree" required value={formData.degree || ''} onChange={e => setFormData({...formData, degree: e.target.value})} />
+                                <input type="text" placeholder="University" required value={formData.school || ''} onChange={e => setFormData({ ...formData, school: e.target.value })} />
+                                <input type="text" placeholder="Degree" required value={formData.degree || ''} onChange={e => setFormData({ ...formData, degree: e.target.value })} />
                                 <div className="date-row">
-                                    <input type="text" placeholder="Start Year" value={formData.year || ''} onChange={e => setFormData({...formData, year: e.target.value})} />
-                                    <input type="text" placeholder="End Year" value={formData.toYear || ''} onChange={e => setFormData({...formData, toYear: e.target.value})} />
+                                    <input type="text" placeholder="Start Year" value={formData.year || ''} onChange={e => setFormData({ ...formData, year: e.target.value })} />
+                                    <input type="text" placeholder="End Year" value={formData.toYear || ''} onChange={e => setFormData({ ...formData, toYear: e.target.value })} />
                                 </div>
                             </>
                         )}
 
                         {type === 'cert' && (
                             <>
-                                <input type="text" placeholder="Certification Name" required value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} />
-                                <input type="text" placeholder="Issuing Organization" required value={formData.issuingOrganization || ''} onChange={e => setFormData({...formData, issuingOrganization: e.target.value})} />
+                                <input type="text" placeholder="Certification Name" required value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                <input type="text" placeholder="Issuing Organization" required value={formData.issuingOrganization || ''} onChange={e => setFormData({ ...formData, issuingOrganization: e.target.value })} />
                                 <label>Issue Date</label>
-                                <input type="date" value={formData.issueDate || ''} onChange={e => setFormData({...formData, issueDate: e.target.value})} />
-                                <input type="url" placeholder="Credential URL" value={formData.credentialUrl || ''} onChange={e => setFormData({...formData, credentialUrl: e.target.value})} />
+                                <input type="date" value={formData.issueDate || ''} onChange={e => setFormData({ ...formData, issueDate: e.target.value })} />
+                                <input type="url" placeholder="Credential URL" value={formData.credentialUrl || ''} onChange={e => setFormData({ ...formData, credentialUrl: e.target.value })} />
                             </>
                         )}
 

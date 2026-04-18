@@ -16,8 +16,16 @@ const Login = ({ setUser }) => {
   const handlePostAuth = (user, token) => {
     localStorage.setItem('token', token);
     setUser(user);
-    navigate(`/${user.role}-dashboard`);
-  };
+
+    // Redirect specifically based on role
+    if (user.role === 'company') {
+        navigate('/company-dashboard');
+    } else if (user.role === 'candidate') {
+        navigate('/candidate-dashboard');
+    } else {
+        navigate('/dashboard'); // Default
+    }
+};
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {

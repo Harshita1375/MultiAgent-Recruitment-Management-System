@@ -8,7 +8,8 @@ import Profile from './Profile';
 import SelectRole from './SelectRole';
 import CandidateDashboard from './CandidateDashboard';
 import ATSChecker from './ATSChecker';
-import CompanyDashboard from './CompanyDashboard'; // 1. Import the new Company Dashboard
+import CompanyDashboard from './CompanyDashboard'; 
+import JobRecommendation from './JobRecommendation';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -58,6 +59,7 @@ function App() {
           path="/candidate-dashboard" 
           element={user && user.role === 'candidate' ? <CandidateDashboard user={user} setUser={setUser} /> : <Navigate to="/" />} 
         />
+        <Route path="/recommendations" element={user ? <JobRecommendation /> : <Navigate to="/" />} />
         
         <Route 
           path="/ats-checker" 
