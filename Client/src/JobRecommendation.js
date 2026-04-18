@@ -7,6 +7,7 @@ const JobRecommendation = ({ user }) => {
     const [loading, setLoading] = useState(true);
     const [selectedJob, setSelectedJob] = useState(null); 
     const [resumeFile, setResumeFile] = useState(null);
+    const [appliedJobs, setAppliedJobs] = useState([]);
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
@@ -38,31 +39,35 @@ const JobRecommendation = ({ user }) => {
     }, [API_URL, token]);
 
     const handleApply = async (jobId) => {
-        if (!resumeFile) {
-            alert("Please select a resume file (PDF/Doc) before applying.");
-            return;
-        }
+    if (!resumeFile) {
+        alert("Please select a resume file (PDF/Doc) before applying.");
+        return;
+    }
 
-        const formData = new FormData();
-        formData.append('resume', resumeFile);
-        formData.append('jobId', jobId);
+    const formData = new FormData();
+    formData.append('resume', resumeFile);
+    formData.append('jobId', jobId);
 
-        try {
-            await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data' 
-                }
-            });
+    try {
+        await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
+            headers: { 
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data' 
+            }
+        });
 
-            alert("Application sent successfully!");
-            setSelectedJob(null);
-            setResumeFile(null);
+        alert("Application sent successfully!");
 
-        } catch (err) {
-            alert(err.response?.data?.message || "Failed to apply.");
-        }
-    };
+        // ✅ Mark job as applied
+        setAppliedJobs(prev => [...prev, jobId]);
+
+        setSelectedJob(null);
+        setResumeFile(null);
+
+    } catch (err) {
+        alert(err.response?.data?.message || "Failed to apply.");
+    }
+};
 
     if (loading) {
         return <div className="loader">Analyzing jobs for your profile...</div>;
@@ -106,11 +111,11 @@ const JobRecommendation = ({ user }) => {
                         </div>
 
                         <button 
-                            className="apply-btn" 
-                            onClick={() => setSelectedJob(job)}
-                        >
-                            View Details & Apply
-                        </button>
+    className="apply-btn" 
+    onClick={() => setSelectedJob(job)}
+>
+    {appliedJobs.includes(job._id) ? "View Details" : "View Details & Apply"}
+</button>
                     </div>
                 )) : (
                     <div className="no-jobs">
@@ -176,12 +181,18 @@ const JobRecommendation = ({ user }) => {
                                 Close
                             </button>
 
-                            <button 
-                                className="btn-primary" 
-                                onClick={() => handleApply(selectedJob._id)}
-                            >
-                                Confirm Application
-                            </button>
+                            {appliedJobs.includes(selectedJob._id) ? (
+    <button className="btn-primary" disabled>
+        Already Applied
+    </button>
+) : (
+    <button 
+        className="btn-primary" 
+        onClick={() => handleApply(selectedJob._id)}
+    >
+        Confirm Application
+    </button>
+)}
                         </div>
 
                     </div>
