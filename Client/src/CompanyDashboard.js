@@ -14,6 +14,7 @@ import {
     Legend,
 } from 'chart.js';
 import './CompanyDashboard.css';
+import InterviewScheduler from './InterviewScheduler';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -23,6 +24,7 @@ const CompanyDashboard = ({ user, handleLogout }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
     const [jobs, setJobs] = useState([]);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
@@ -65,12 +67,29 @@ const CompanyDashboard = ({ user, handleLogout }) => {
     };
 
     // 3. UI DATA CONFIGS
-    const stats = [
-        { label: "My Companies", count: "05", icon: "🏛️", color: "#27ae60" },
-        { label: "My Jobs", count: jobs.length || "0", icon: "💼", color: "#2980b9" }, // Dynamic count
-        { label: "Applied Resumes", count: "03", icon: "📄", color: "#f39c12" },
-        { label: "Active Postings", count: "01", icon: "✨", color: "#e74c3c" }
-    ];
+   // Replace your existing 'const stats = [...]' with this dynamic version
+const stats = [
+    { 
+        label: "My Jobs", 
+        count: jobs.length.toString().padStart(2, '0'), 
+        icon: "💼", 
+        color: "#2980b9" 
+    },
+    { 
+        label: "Applied Resumes", 
+        // Sums up all applicationCounts from all jobs
+        count: jobs.reduce((acc, job) => acc + (job.applicationCount || 0), 0).toString().padStart(2, '0'), 
+        icon: "📄", 
+        color: "#f39c12" 
+    },
+    { 
+        label: "Active Postings", 
+        // Counts jobs where status is explicitly 'active' (adjust based on your schema)
+        count: jobs.filter(j => j.status !== 'closed').length.toString().padStart(2, '0'), 
+        icon: "✨", 
+        color: "#e74c3c" 
+    }
+];
 
     const chartData = {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -112,7 +131,7 @@ const CompanyDashboard = ({ user, handleLogout }) => {
             <header className="hq-top-nav">
                 <div className="hq-brand-container">
                     <span className="hq-brand-icon">🚀</span>
-                    <span className="hq-brand-name">MIRROR CHAOS</span>
+                    <span className="hq-brand-name">TalentSync</span>
                 </div>
                 <div className="hq-nav-links">
                     <span>Home</span>
@@ -139,7 +158,9 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                     <nav className="hq-sidebar-nav">
                         <button className="sidebar-link active-link" onClick={handleCreateNew}>➕ Create a Post</button>
                         <button className="sidebar-link">📊 Active Jobs</button>
-                        <button className="sidebar-link">🗓️ Schedule Interview</button>
+                        <button className="sidebar-link" onClick={() => navigate('/company/scheduler')}>
+    🗓️ Schedule Interview
+</button>
                         <button className="sidebar-link">📩 Messages</button>
                     </nav>
                 </aside>
@@ -206,7 +227,9 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                 fetchJobs={fetchJobs}
                 editJobData={selectedJob}
             />
+            
         </div>
+        
     );
 };
 

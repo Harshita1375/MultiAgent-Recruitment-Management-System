@@ -4,27 +4,31 @@ import axios from 'axios';
 
 // Import your components
 import Login from './Login';
-import Profile from './Profile'; 
+import Profile from './Profile';
 import SelectRole from './SelectRole';
 import CandidateDashboard from './CandidateDashboard';
 import ATSChecker from './ATSChecker';
-import CompanyDashboard from './CompanyDashboard'; 
+import CompanyDashboard from './CompanyDashboard';
 import JobRecommendation from './JobRecommendation';
 import JobApplications from './JobApplications';
+import InterviewScheduler from './InterviewScheduler'; // 1. ADD THIS IMPORT
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Use environment variable for the API
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
 
   useEffect(() => {
     const checkUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // 2. Updated to use the dynamic API_URL instead of localhost
           const res = await axios.get(`${API_URL}/api/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -43,7 +47,7 @@ function App() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <h3>Mirror Chaos: Loading Session...</h3>
+        <h3>TalentSync Loading Session...</h3>
       </div>
     );
   }
@@ -55,28 +59,33 @@ function App() {
         <Route path="/" element={<Login setUser={setUser} />} />
         <Route path="/select-role" element={<SelectRole setUser={setUser} />} />
 
-        {/* 3. Candidate Specific Routes */}
-        <Route 
-          path="/candidate-dashboard" 
-          element={user && user.role === 'candidate' ? <CandidateDashboard user={user} setUser={setUser} /> : <Navigate to="/" />} 
+        {/* Candidate Routes */}
+        <Route
+          path="/candidate-dashboard"
+          element={user && user.role === 'candidate' ? <CandidateDashboard user={user} setUser={setUser} /> : <Navigate to="/" />}
         />
         <Route path="/recommendations" element={user ? <JobRecommendation /> : <Navigate to="/" />} />
-        
-        <Route 
-          path="/ats-checker" 
-          element={user && user.role === 'candidate' ? <ATSChecker user={user} /> : <Navigate to="/" />} 
+        <Route
+          path="/ats-checker"
+          element={user && user.role === 'candidate' ? <ATSChecker user={user} /> : <Navigate to="/" />}
         />
 
-        {/* 4. Company Specific Route - Only opens CompanyDashboard if role is 'company' */}
-        <Route 
-          path="/company-dashboard" 
-          element={user && user.role === 'company' ? <CompanyDashboard user={user} /> : <Navigate to="/" />} 
+        {/* 2. ADD THE MAIN COMPANY DASHBOARD ROUTE BACK */}
+        <Route
+          path="/company-dashboard"
+          element={user && user.role === 'company' ? <CompanyDashboard user={user} handleLogout={handleLogout} /> : <Navigate to="/" />}
         />
 
-        <Route 
-  path="/job/:jobId/applications" 
-  element={user && user.role === 'company' ? <JobApplications /> : <Navigate to="/" />} 
-/>
+        {/* 3. Company Specific Routes */}
+        <Route
+          path="/company/scheduler"
+          element={user && user.role === 'company' ? <InterviewScheduler /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/job/:jobId/applications"
+          element={user && user.role === 'company' ? <JobApplications /> : <Navigate to="/" />}
+        />
 
         {/* General Protected Routes */}
         <Route path="/profile" element={user ? <Profile user={user} /> : <Navigate to="/" />} />
