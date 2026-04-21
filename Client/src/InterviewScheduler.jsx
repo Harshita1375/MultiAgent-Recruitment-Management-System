@@ -1,130 +1,215 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { format, parse, startOfWeek, getDay, isSunday } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import axios from 'axios'; 
 import { useNavigate } from 'react-router-dom';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const locales = { 'en-US': enUS };
-
-const localizer = dateFnsLocalizer({
-    format,
-    parse,
-    startOfWeek,
-    getDay,
-    locales,
-});
+const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 const InterviewScheduler = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
-    const [jobs, setJobs] = useState([]); // 1. Added jobs state
-    const [loading, setLoading] = useState(true);
+    const [jobs, setJobs] = useState([]);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    
+    // Form State
+    const [formData, setFormData] = useState({
+        title: '',
+        candidateName: '',
+        job: '',
+        start: '',
+        end: '',
+        meetingLink: ''
+    });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                // 2. Fetch both Interviews and Jobs in parallel
-                const [interviewsRes, jobsRes] = await Promise.all([
-                    axios.get(`${API_URL}/api/interviews`, { headers }),
-                    axios.get(`${API_URL}/api/jobs/my-jobs`, { headers })
-                ]);
+        loadData();
+    }, []);
 
-                // Format Interviews for Calendar
-                const formattedInterviews = interviewsRes.data.map(event => ({
-                    ...event,
-                    start: new Date(event.start),
-                    end: new Date(event.end)
-                }));
+    const loadData = async () => {
+        try {
+            const [intRes, jobsRes] = await Promise.all([
+                axios.get(`${API_URL}/api/interviews`, { headers }),
+                axios.get(`${API_URL}/api/jobs/my-jobs`, { headers })
+            ]);
+            const formatted = intRes.data.map(event => ({
+                ...event,
+                start: new Date(event.start),
+                end: new Date(event.end)
+            }));
+            setEvents(formatted);
+            setJobs(jobsRes.data);
+        } catch (err) { console.error(err); }
+    };
 
-                setEvents(formattedInterviews);
-                setJobs(jobsRes.data); // Store jobs to get valid _id
-            } catch (err) {
-                console.error("Error loading scheduler data:", err);
-            } finally {
-                setLoading(false);
+    // Open form for new event
+    const handleSelectSlot = ({ start, end }) => {
+        setSelectedEvent(null);
+        setFormData({
+            title: '',
+            candidateName: '',
+            job: jobs[0]?._id || '',
+            start: format(start, "yyyy-MM-dd'T'HH:mm"),
+            end: format(end, "yyyy-MM-dd'T'HH:mm"),
+            meetingLink: ''
+        });
+        setIsFormOpen(true);
+    };
+
+    // Open form for editing existing event
+    const handleSelectEvent = (event) => {
+        setSelectedEvent(event);
+        setFormData({
+            title: event.title,
+            candidateName: event.candidateName,
+            job: event.job?._id || event.job,
+            start: format(event.start, "yyyy-MM-dd'T'HH:mm"),
+            end: format(event.end, "yyyy-MM-dd'T'HH:mm"),
+            meetingLink: event.meetingLink || ''
+        });
+        setIsFormOpen(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (selectedEvent) {
+                // Edit existing
+                const res = await axios.put(`${API_URL}/api/interviews/${selectedEvent._id}`, formData, { headers });
+                loadData();
+            } else {
+                // Create new
+                await axios.post(`${API_URL}/api/interviews`, formData, { headers });
+                loadData();
             }
-        };
+            setIsFormOpen(false);
+        } catch (err) { alert("Action failed"); }
+    };
 
-        if (token) loadData();
-    }, [API_URL, token]);
-
-    const handleSelectSlot = async ({ start, end }) => {
-        // 3. Validation: Check if HR has at least one job
-        if (!jobs || jobs.length === 0) {
-            alert("You must have at least one job posted to schedule an interview.");
-            return;
-        }
-
-        const title = window.prompt("Interview Title (e.g., Frontend Developer Interview):");
-        const candidateName = window.prompt("Candidate Name:");
-        
-        // Use the ID of the first job found in the database
-        const validJobId = jobs[0]._id; 
-
-        if (title && candidateName) {
+    const handleDelete = async () => {
+        if (window.confirm("Delete this interview?")) {
             try {
-                const newEvent = { 
-                    title, 
-                    start, 
-                    end, 
-                    candidateName, 
-                    job: validJobId // Sending a real 24-character hex ID
-                }; 
-                
-                const res = await axios.post(`${API_URL}/api/interviews`, newEvent, { headers });
-
-                setEvents([...events, { 
-                    ...res.data, 
-                    start: new Date(res.data.start), 
-                    end: new Date(res.data.end) 
-                }]);
-            } catch (err) {
-                console.error("Post Error:", err.response?.data);
-                alert("Error: " + (err.response?.data?.message || "Server Error"));
-            }
+                await axios.delete(`${API_URL}/api/interviews/${selectedEvent._id}`, { headers });
+                loadData();
+                setIsFormOpen(false);
+            } catch (err) { alert("Delete failed"); }
         }
     };
 
-    if (loading) return <div className="loading-screen">Loading Calendar...</div>;
+    // Custom styling to mark Sundays as Holidays
+    const dayPropGetter = (date) => {
+        if (isSunday(date)) {
+            return {
+                style: {
+                    backgroundColor: '#fff1f0',
+                    cursor: 'not-allowed'
+                },
+            };
+        }
+        return {};
+    };
 
     return (
         <div className="hq-scheduler-page">
             <header className="hq-top-nav">
-                <div className="hq-brand-container" onClick={() => navigate('/company-dashboard')}>
-                    <span className="hq-brand-icon">🚀</span>
-                    <span className="hq-brand-name">TalentSync</span>
-                </div>
-                <button className="hq-logout-btn" onClick={() => navigate('/company-dashboard')}>
-                    ← Back to Dashboard
-                </button>
+                <span className="hq-brand-name">TalentSync Scheduler</span>
+                <button onClick={() => navigate('/company-dashboard')}>← Back</button>
             </header>
 
-            <div className="hq-content-area" style={{ padding: '40px' }}>
-                <div className="hq-card">
-                    <div className="hq-card-header">
-                        <h2>Interview Calendar</h2>
-                        <p>Currently managing <b>{jobs.length}</b> active roles</p>
+            <div className="hq-content-area">
+                <Calendar
+                    localizer={localizer}
+                    events={events}
+                    selectable
+                    onSelectSlot={handleSelectSlot}
+                    onSelectEvent={handleSelectEvent}
+                    dayPropGetter={dayPropGetter}
+                    defaultView="week"
+                    views={['month', 'week', 'day', 'agenda']}
+                    style={{ height: '80vh', background: 'white', padding: '20px', borderRadius: '15px' }}
+                />
+            </div>
+
+            {/* Event Form Modal */}
+            {isFormOpen && (
+            <div className="hq-modal-overlay">
+                <div className="hq-modal-card animate-pop">
+                    <div className="modal-header-accent">
+                        <h3>{selectedEvent ? '📝 Edit Interview' : '📅 Schedule New Interview'}</h3>
+                        <button className="close-x" onClick={() => setIsFormOpen(false)}>&times;</button>
                     </div>
-                    <div className="calendar-wrapper" style={{ height: '700px', backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                        <Calendar
-                            localizer={localizer}
-                            events={events}
-                            selectable
-                            onSelectSlot={handleSelectSlot}
-                            defaultView="week"
-                            style={{ height: "100%" }}
-                        />
-                    </div>
+
+                    <form className="scheduler-form-pro" onSubmit={handleSubmit}>
+                        <div className="form-section">
+                            <label>Interview Title</label>
+                            <input 
+                                type="text" 
+                                required 
+                                value={formData.title} 
+                                onChange={e => setFormData({...formData, title: e.target.value})} 
+                                placeholder="e.g. Frontend Technical Round" 
+                            />
+                        </div>
+
+                        <div className="form-section">
+                            <label>Candidate Name</label>
+                            <input 
+                                type="text" 
+                                required 
+                                value={formData.candidateName} 
+                                onChange={e => setFormData({...formData, candidateName: e.target.value})} 
+                                placeholder="Full Name"
+                            />
+                        </div>
+
+                        <div className="form-section">
+                            <label>Link to Job Position</label>
+                            <select value={formData.job} onChange={e => setFormData({...formData, job: e.target.value})}>
+                                {jobs.map(j => <option key={j._id} value={j._id}>{j.title}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-row-grid">
+                            <div className="form-section">
+                                <label>Start Time</label>
+                                <input type="datetime-local" value={formData.start} onChange={e => setFormData({...formData, start: e.target.value})} />
+                            </div>
+                            <div className="form-section">
+                                <label>End Time</label>
+                                <input type="datetime-local" value={formData.end} onChange={e => setFormData({...formData, end: e.target.value})} />
+                            </div>
+                        </div>
+
+                        <div className="form-section">
+                            <label>Meeting Link</label>
+                            <input type="url" value={formData.meetingLink} onChange={e => setFormData({...formData, meetingLink: e.target.value})} placeholder="Zoom/Google Meet Link" />
+                        </div>
+
+                        <div className="modal-footer-actions">
+                            {selectedEvent && (
+                                <button type="button" className="btn-delete" onClick={handleDelete}>Delete</button>
+                            )}
+                            <div className="right-actions">
+                                <button type="button" className="btn-cancel" onClick={() => setIsFormOpen(false)}>Cancel</button>
+                                <button type="submit" className="btn-save">
+                                    {selectedEvent ? 'Save Changes' : 'Confirm Schedule'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div>
-    );
+        )}
+    </div>
+);
 };
 
 export default InterviewScheduler;
