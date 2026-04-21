@@ -10,6 +10,7 @@ import CandidateDashboard from './CandidateDashboard';
 import ATSChecker from './ATSChecker';
 import CompanyDashboard from './CompanyDashboard'; 
 import JobRecommendation from './JobRecommendation';
+import JobApplications from './JobApplications';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -71,6 +72,11 @@ function App() {
           path="/company-dashboard" 
           element={user && user.role === 'company' ? <CompanyDashboard user={user} /> : <Navigate to="/" />} 
         />
+
+        <Route 
+  path="/job/:jobId/applications" 
+  element={user && user.role === 'company' ? <JobApplications /> : <Navigate to="/" />} 
+/>
 
         {/* General Protected Routes */}
         <Route path="/profile" element={user ? <Profile user={user} /> : <Navigate to="/" />} />

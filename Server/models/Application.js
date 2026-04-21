@@ -20,6 +20,10 @@ const applicationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    atsScore: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
         enum: ['Pending', 'Accepted', 'Rejected'],

@@ -5,7 +5,7 @@ import './JobRecommendation.css';
 const JobRecommendation = ({ user }) => {
     const [recommendedJobs, setRecommendedJobs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedJob, setSelectedJob] = useState(null); 
+    const [selectedJob, setSelectedJob] = useState(null);
     const [resumeFile, setResumeFile] = useState(null);
     const [appliedJobs, setAppliedJobs] = useState([]);
 
@@ -38,34 +38,38 @@ const JobRecommendation = ({ user }) => {
 
     }, [API_URL, token]);
 
-    const handleApply = async (jobId) => {
+    const [isApplying, setIsApplying] = useState(false); // New state
+
+const handleApply = async (jobId) => {
     if (!resumeFile) {
-        alert("Please select a resume file (PDF/Doc) before applying.");
+        alert("Please select a resume file.");
         return;
     }
+
+    setIsApplying(true); // Start loading
 
     const formData = new FormData();
     formData.append('resume', resumeFile);
     formData.append('jobId', jobId);
 
     try {
-        await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
-            headers: { 
+        const res = await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
+            headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data' 
+                'Content-Type': 'multipart/form-data'
             }
         });
 
-        alert("Application sent successfully!");
+        // Show the user their ATS score immediately!
+        alert(`Application sent! Your ATS Match Score: ${res.data.atsScore}%`);
 
-        // ✅ Mark job as applied
         setAppliedJobs(prev => [...prev, jobId]);
-
         setSelectedJob(null);
         setResumeFile(null);
-
     } catch (err) {
         alert(err.response?.data?.message || "Failed to apply.");
+    } finally {
+        setIsApplying(false); // Stop loading
     }
 };
 
@@ -85,14 +89,14 @@ const JobRecommendation = ({ user }) => {
                     <div key={job._id} className="rec-job-card">
 
                         {/* ✅ USE matchPercentage FROM BACKEND */}
-                        <div 
-                            className="match-badge" 
-                            style={{ 
-                                background: job.matchPercentage > 70 
-                                    ? '#27ae60' 
-                                    : job.matchPercentage > 40 
-                                    ? '#f39c12' 
-                                    : '#95a5a6' 
+                        <div
+                            className="match-badge"
+                            style={{
+                                background: job.matchPercentage > 70
+                                    ? '#27ae60'
+                                    : job.matchPercentage > 40
+                                        ? '#f39c12'
+                                        : '#95a5a6'
                             }}
                         >
                             {job.matchPercentage}% Match
@@ -110,12 +114,12 @@ const JobRecommendation = ({ user }) => {
                             </div>
                         </div>
 
-                        <button 
-    className="apply-btn" 
-    onClick={() => setSelectedJob(job)}
->
-    {appliedJobs.includes(job._id) ? "View Details" : "View Details & Apply"}
-</button>
+                        <button
+                            className="apply-btn"
+                            onClick={() => setSelectedJob(job)}
+                        >
+                            {appliedJobs.includes(job._id) ? "View Details" : "View Details & Apply"}
+                        </button>
                     </div>
                 )) : (
                     <div className="no-jobs">
@@ -131,8 +135,8 @@ const JobRecommendation = ({ user }) => {
 
                         <div className="modal-header">
                             <h2>{selectedJob.title}</h2>
-                            <button 
-                                className="close-x" 
+                            <button
+                                className="close-x"
                                 onClick={() => setSelectedJob(null)}
                             >
                                 &times;
@@ -154,7 +158,7 @@ const JobRecommendation = ({ user }) => {
                             <div className="mandatory-resume-section">
                                 <h4>Upload Resume</h4>
 
-                                <input 
+                                <input
                                     type="file"
                                     accept=".pdf,.doc,.docx"
                                     onChange={(e) => setResumeFile(e.target.files[0])}
@@ -174,25 +178,25 @@ const JobRecommendation = ({ user }) => {
                         </div>
 
                         <div className="modal-footer">
-                            <button 
-                                className="btn-secondary" 
+                            <button
+                                className="btn-secondary"
                                 onClick={() => setSelectedJob(null)}
                             >
                                 Close
                             </button>
 
                             {appliedJobs.includes(selectedJob._id) ? (
-    <button className="btn-primary" disabled>
-        Already Applied
-    </button>
-) : (
-    <button 
-        className="btn-primary" 
-        onClick={() => handleApply(selectedJob._id)}
-    >
-        Confirm Application
-    </button>
-)}
+                                <button className="btn-primary" disabled>
+                                    Already Applied
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn-primary"
+                                    onClick={() => handleApply(selectedJob._id)}
+                                >
+                                    Confirm Application
+                                </button>
+                            )}
                         </div>
 
                     </div>

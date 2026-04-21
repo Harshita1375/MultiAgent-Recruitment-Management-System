@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'; // Added useEffect
 import { Line } from 'react-chartjs-2';
 import axios from 'axios'; // Ensure axios is imported
-import JobPostForm from './JobPostForm'; 
+import JobPostForm from './JobPostForm';
+import { useNavigate } from 'react-router-dom';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -18,10 +19,11 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const CompanyDashboard = ({ user, handleLogout }) => {
     // 1. ALL HOOKS MUST BE INSIDE THE COMPONENT
+    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
     const [jobs, setJobs] = useState([]);
-    
+
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
@@ -95,6 +97,15 @@ const CompanyDashboard = ({ user, handleLogout }) => {
         plugins: { legend: { position: 'top' } },
         scales: { y: { beginAtZero: true } }
     };
+    const handleViewResume = (url) => {
+    // If it's an external link (Cloudinary/S3), just open it
+    if (url.startsWith('http')) {
+        window.open(url, '_blank');
+    } else {
+        // If it's a local server file
+        window.open(`${API_URL}/${url}`, '_blank');
+    }
+};
 
     return (
         <div className="hq-company-dashboard">
@@ -171,10 +182,16 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                                             <p>{job.location} • {job.salary}</p>
                                         </div>
                                     </div>
-                                    <div className="applicant-pill">Resumes (<b>{job.applicants?.length || 0}</b>)</div>
+                                    <div className="applicant-pill">Resumes (<b>{job.applicationCount || 0}</b>)</div>
                                     <div className="job-actions">
                                         <button className="job-action-icon" onClick={() => handleEdit(job)}>✎</button>
                                         <button className="job-action-icon" onClick={() => handleDelete(job._id)}>🗑</button>
+                                        <button 
+  onClick={() => navigate(`/job/${job._id}/applications`)} 
+  className="view-resume-btn"
+>
+  📄 View Applications
+</button>
                                     </div>
                                 </div>
                             )) : <p>No jobs posted yet.</p>}
@@ -183,11 +200,11 @@ const CompanyDashboard = ({ user, handleLogout }) => {
                 </main>
             </div>
 
-            <JobPostForm 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
-                fetchJobs={fetchJobs} 
-                editJobData={selectedJob} 
+            <JobPostForm
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                fetchJobs={fetchJobs}
+                editJobData={selectedJob}
             />
         </div>
     );
