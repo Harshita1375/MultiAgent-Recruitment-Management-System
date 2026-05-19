@@ -40,38 +40,38 @@ const JobRecommendation = ({ user }) => {
 
     const [isApplying, setIsApplying] = useState(false); // New state
 
-const handleApply = async (jobId) => {
-    if (!resumeFile) {
-        alert("Please select a resume file.");
-        return;
-    }
+    const handleApply = async (jobId) => {
+        if (!resumeFile) {
+            alert("Please select a resume file.");
+            return;
+        }
 
-    setIsApplying(true); // Start loading
+        setIsApplying(true); // Start loading
 
-    const formData = new FormData();
-    formData.append('resume', resumeFile);
-    formData.append('jobId', jobId);
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        formData.append('jobId', jobId);
 
-    try {
-        const res = await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+        try {
+            const res = await axios.post(`${API_URL}/api/jobs/apply/${jobId}`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
-        // Show the user their ATS score immediately!
-        alert(`Application sent! Your ATS Match Score: ${res.data.atsScore}%`);
+            // Show the user their ATS score immediately!
+            alert(`Application sent! Your ATS Match Score: ${res.data.atsScore}%`);
 
-        setAppliedJobs(prev => [...prev, jobId]);
-        setSelectedJob(null);
-        setResumeFile(null);
-    } catch (err) {
-        alert(err.response?.data?.message || "Failed to apply.");
-    } finally {
-        setIsApplying(false); // Stop loading
-    }
-};
+            setAppliedJobs(prev => [...prev, jobId]);
+            setSelectedJob(null);
+            setResumeFile(null);
+        } catch (err) {
+            alert(err.response?.data?.message || "Failed to apply.");
+        } finally {
+            setIsApplying(false); // Stop loading
+        }
+    };
 
     if (loading) {
         return <div className="loader">Analyzing jobs for your profile...</div>;

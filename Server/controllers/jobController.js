@@ -76,7 +76,7 @@ exports.getMyJobs = async (req, res) => {
         const jobsWithCount = await Promise.all(
             jobs.map(async (job) => {
                 const count = await Application.countDocuments({ job: job._id });
-                
+
                 return {
                     ...job._doc,
                     applicationCount: count

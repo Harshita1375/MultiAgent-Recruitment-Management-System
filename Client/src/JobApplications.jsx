@@ -66,21 +66,21 @@ const JobApplications = () => {
 
                         <div className="candidate-actions">
                             <div className="candidate-actions">
-    <div className="candidate-actions">
-    {/* ✅ Use app.resumeUrl here - ensure API_URL is used for the path */}
-    <a 
-        href={app.resumeUrl?.startsWith('http') ? app.resumeUrl : `${API_URL}/${app.resumeUrl}`} 
-        target="_blank" 
-        rel="noreferrer" 
-        className="view-resume-btn"
-    >
-        📄 View Resume
-    </a>
-    <button className="accept-btn">Shortlist</button>
-    <button className="reject-btn">Reject</button>
-</div>
-</div>
- 
+                                <div className="candidate-actions">
+                                    {/* ✅ Use app.resumeUrl here - ensure API_URL is used for the path */}
+                                    <a
+                                        href={app.resumeUrl?.startsWith('http') ? app.resumeUrl : `${API_URL}/${app.resumeUrl}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="view-resume-btn"
+                                    >
+                                        📄 View Resume
+                                    </a>
+                                    <button className="accept-btn">Shortlist</button>
+                                    <button className="reject-btn">Reject</button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 )) : (
