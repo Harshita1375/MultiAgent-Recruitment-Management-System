@@ -11,7 +11,7 @@ const Login = ({ setUser }) => {
   const navigate = useNavigate();
 
   // FIX: Define API_URL to use the environment variable
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handlePostAuth = (user, token) => {
     localStorage.setItem('token', token);
